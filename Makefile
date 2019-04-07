@@ -2,4 +2,4 @@ run: compile
 	./yes.ha
 
 compile:
-	gcc main.cpp -o yes.ha -lgmp
+	gcc  -g3 main.c -o yes.ha -lgmp
