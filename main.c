@@ -29,7 +29,20 @@ unsigned int gcd(mpz_t a, mpz_t b)
 //sets res to jacobi(a/b)
 void getJacobi(mpz_t res, mpz_t a, mpz_t b)
 {
+    mpz_t tmp;
 
+    //if greater or equal
+    if(mpz_cmp(a, b) >= 0)
+    {
+        mpz_mod(a, a, b);
+    }
+    else
+    {
+        
+    }
+    
+
+    mpz_clear(tmp);
 }
 
 // sets n to n^ex    TODO: mod
