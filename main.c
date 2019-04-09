@@ -38,9 +38,30 @@ void getJacobi(mpz_t res, mpz_t a, mpz_t b)
     }
     else
     {
-        
+        mpz_set(tmp, b);
+        mpz_set(b, a);
+        mpz_set(a, tmp);
     }
-    
+
+
+
+    mpz_clear(tmp);
+}
+
+void getTwoFactors(mpz_t a, mpz_t result)
+{
+    mpz_t tmp;
+    mpz_init_set_ui(result, 0);
+    mpz_init(tmp);
+
+    mpz_set(tmp, a);
+
+    while(!(mpz_get_ui(tmp) & 1))
+    {
+        //printf("%Lu", mpz_get_ui(tmp));
+        mpz_add_ui(result, result, 1);
+        mpz_div_ui(tmp, tmp, 2);
+    }
 
     mpz_clear(tmp);
 }
@@ -87,10 +108,14 @@ int main()
 
     mpz_t a, b;
 
-    mpz_init_set_ui(a, 17);
+    mpz_init_set_ui(a, 64);
     mpz_init_set_ui(b, 7);
 
-    gcd(a, b);
+    getTwoFactors(a, b);
+
+    gmp_printf("%Zd", b);
+
+   // gcd(a, b);
 
 //    gmp_scanf("%Zd", test);
 
@@ -115,5 +140,7 @@ int main()
     }*/
 
     mpz_clear(test);
+    mpz_clear(a);
+    mpz_clear(b);
     return 0;
 }
