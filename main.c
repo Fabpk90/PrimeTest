@@ -3,6 +3,35 @@
 
 #include <gmp.h>
 
+void getTwoFactors(mpz_t a, mpz_t result)
+{
+    mpz_t tmp;
+    mpz_init_set_ui(result, 0);
+    mpz_init(tmp);
+
+    mpz_set(tmp, a);
+
+    while(!(mpz_get_ui(tmp) & 1))
+    {
+        //printf("%Lu", mpz_get_ui(tmp));
+        mpz_add_ui(result, result, 1);
+        mpz_div_ui(tmp, tmp, 2);
+    }
+
+    mpz_clear(tmp);
+}
+
+
+void powOfTwo(mpz_t a, mpz_t times)
+{
+    unsigned long int j = mpz_get_ui(times) - 1;
+    for(unsigned long int i = 0; i < j; i++)
+    {
+        mpz_mul_ui(a, a, 2);
+    }
+    
+}
+
 unsigned int gcd(mpz_t a, mpz_t b)
 {
     mpz_t tmp;
@@ -27,44 +56,37 @@ unsigned int gcd(mpz_t a, mpz_t b)
 
 
 //sets res to jacobi(a/b)
-void getJacobi(mpz_t res, mpz_t a, mpz_t b)
+void getJacobi(mpz_t res, mpz_t a, mpz_t n)
 {
-    mpz_t tmp;
+    mpz_t pow, tmp;// not really useful cause when test the parity of the pow
+    //to neg or not the val
+    mpz_set_ui(res, 0);
 
-    //if greater or equal
-    if(mpz_cmp(a, b) >= 0)
+    int ok = 1; // to be set when the algo ends
+
+    while(ok)
     {
-        mpz_mod(a, a, b);
+        mpz_set_ui(pow, 0);
+        mpz_set_ui(tmp, 0);
+        //(1) -> 1
+        mpz_mod(a, a, n);
+
+        //(2) -> 3 5
+        getTwoFactors(a, pow);
+
+        if(mpz_get_ui(pow) != 0)
+        {
+            //degrouping pow of two
+            //we need to divide a to 2^pow
+            //now see if 2^pow = 1 or -1 (see n mod 8)
+            //if -1 see pow to know if even
+        }
     }
-    else
-    {
-        mpz_set(tmp, b);
-        mpz_set(b, a);
-        mpz_set(a, tmp);
-    }
-
-
-
+    
+    mpz_clear(pow);
     mpz_clear(tmp);
 }
 
-void getTwoFactors(mpz_t a, mpz_t result)
-{
-    mpz_t tmp;
-    mpz_init_set_ui(result, 0);
-    mpz_init(tmp);
-
-    mpz_set(tmp, a);
-
-    while(!(mpz_get_ui(tmp) & 1))
-    {
-        //printf("%Lu", mpz_get_ui(tmp));
-        mpz_add_ui(result, result, 1);
-        mpz_div_ui(tmp, tmp, 2);
-    }
-
-    mpz_clear(tmp);
-}
 
 // sets n to n^ex    TODO: mod
 void squareAndMultiply(mpz_t n, mpz_t modulo, mpz_t ex)
@@ -106,38 +128,12 @@ int main()
 
     printf("Enter N: ");
 
-    mpz_t a, b;
+    mpz_t a, b, twoP;
 
-    mpz_init_set_ui(a, 64);
+    mpz_init_set_ui(a, 541);
     mpz_init_set_ui(b, 7);
+    
 
-    getTwoFactors(a, b);
-
-    gmp_printf("%Zd", b);
-
-   // gcd(a, b);
-
-//    gmp_scanf("%Zd", test);
-
-   /* if(mpz_get_ui(test) & 1)
-    {
-        mpz_t n, ex;
-
-        mpz_init(n);
-        mpz_init(ex);
-
-        mpz_set_ui(n, 2);
-        mpz_set_ui(ex, 5);
-
-        squareAndMultiply(n, NULL, ex);
-
-        mpz_clear(n);
-        mpz_clear(ex);
-    }
-    else
-    {
-        printf("even number typed, try again\n");
-    }*/
 
     mpz_clear(test);
     mpz_clear(a);
