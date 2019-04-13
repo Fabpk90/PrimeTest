@@ -11,9 +11,11 @@ void getTwoFactors(mpz_t a, mpz_t result)
 
     mpz_set(tmp, a);
 
-    while(!(mpz_get_ui(tmp) & 1))
+    printf("%lu\n", mpz_get_ui(tmp));
+
+    while (!(mpz_get_ui(tmp) & 1))
     {
-        //printf("%Lu", mpz_get_ui(tmp));
+        //printf("%lu", mpz_get_ui(tmp));
         mpz_add_ui(result, result, 1);
         mpz_div_ui(tmp, tmp, 2);
     }
@@ -21,15 +23,13 @@ void getTwoFactors(mpz_t a, mpz_t result)
     mpz_clear(tmp);
 }
 
-
 void powOfTwo(mpz_t a, mpz_t times)
 {
     unsigned long int j = mpz_get_ui(times) - 1;
-    for(unsigned long int i = 0; i < j; i++)
+    for (unsigned long int i = 0; i < j; i++)
     {
         mpz_mul_ui(a, a, 2);
     }
-    
 }
 
 unsigned int gcd(mpz_t a, mpz_t b)
@@ -40,7 +40,7 @@ unsigned int gcd(mpz_t a, mpz_t b)
     printf("%lu\n", mpz_get_ui(a));
     printf("%lu\n", mpz_get_ui(b));
 
-    while(mpz_get_ui(b) != 0 && mpz_get_ui(b) != 1)
+    while (mpz_get_ui(b) != 0 && mpz_get_ui(b) != 1)
     {
         mpz_set(tmp, b);
         mpz_mod(b, a, b);
@@ -49,44 +49,114 @@ unsigned int gcd(mpz_t a, mpz_t b)
 
     mpz_clear(tmp);
 
-    printf("b %lu\n", mpz_get_ui(b));
-
     return mpz_get_ui(b);
 }
-
 
 //sets res to jacobi(a/b)
 void getJacobi(mpz_t res, mpz_t a, mpz_t n)
 {
-    mpz_t pow, tmp;// not really useful cause when test the parity of the pow
+    char sign = 0;  //0 -> + 1 -> -
+    mpz_t pow, two; // not really useful cause when test the parity of the pow
     //to neg or not the val
     mpz_set_ui(res, 0);
+    mpz_init(pow);
+    mpz_init(two);
 
     int ok = 1; // to be set when the algo ends
 
-    while(ok)
+    gmp_printf("0  %Zd\n", a);
+    gmp_printf("0  %Zd\n", n);
+
+    while (ok)
     {
         mpz_set_ui(pow, 0);
-        mpz_set_ui(tmp, 0);
+        mpz_set_ui(two, 2);
         //(1) -> 1
         mpz_mod(a, a, n);
 
+        gmp_printf("1  %Zd\n", a);
+        gmp_printf("1  %Zd\n", n);
+
         //(2) -> 3 5
+        //degrouping pow of two
+        //we need to divide a to 2^pow
+        //now see if 2^pow = 1 or -1 (see n mod 8)
+        //if -1 see pow to know if even
         getTwoFactors(a, pow);
 
-        if(mpz_get_ui(pow) != 0)
+        gmp_printf("2  %Zd\n", a);
+        gmp_printf("2  %Zd\n", n);
+
+        if (mpz_get_ui(pow) != 0)
         {
-            //degrouping pow of two
-            //we need to divide a to 2^pow
-            //now see if 2^pow = 1 or -1 (see n mod 8)
-            //if -1 see pow to know if even
+            //n mod 8
+            mpz_t modRes;
+            mpz_init(modRes);
+
+            powOfTwo(two, pow);
+
+            mpz_div(a, a, two);
+
+            gmp_printf("3  %Zd\n", a);
+            gmp_printf("3  %Zd\n", n);
+
+            mpz_mod_ui(modRes, n, 8);
+
+            if (mpz_get_ui(modRes) == 3 || mpz_get_ui(modRes) == 5)
+            {
+                //odd (-1)^pow where pow is odd
+                if (!(mpz_get_ui(pow) & 1))
+                    sign = (sign == 1) ? 0 : 1;
+            }
+
+            gmp_printf("4  %Zd\n", a);
+            gmp_printf("4  %Zd\n", n);
+
+            mpz_clear(modRes);
+        }
+
+        if (mpz_get_ui(a) == 1)
+        {
+            ok = 0;
+            mpz_set_ui(res, 1);
+        }
+        else
+        {
+            if (gcd(a, n) != 1)
+            {
+                ok = 0;
+                mpz_set_ui(res, 0);
+            }
+            else
+            {
+                mpz_t modA, modN;
+
+                mpz_init(modA);
+                mpz_init(modN);
+
+                mpz_mod_ui(modA, a, 4);
+                mpz_mod_ui(modN, n, 4);
+
+                if (mpz_get_ui(modA) == 1 || mpz_get_ui(modN) == 1)
+                {
+                    // -*- == +
+                    sign = (sign == 1) ? 0 : 1;
+                }
+
+                mpz_swap(a, n);
+
+                mpz_clear(modA);
+                mpz_clear(modN);
+            }
         }
     }
-    
-    mpz_clear(pow);
-    mpz_clear(tmp);
-}
 
+    if (sign)
+        mpz_neg(res, res);
+
+    mpz_clear(pow);
+    mpz_clear(two);
+}
 
 // sets n to n^ex    TODO: mod
 void squareAndMultiply(mpz_t n, mpz_t modulo, mpz_t ex)
@@ -94,49 +164,103 @@ void squareAndMultiply(mpz_t n, mpz_t modulo, mpz_t ex)
     //gets the size in bit of the exposant
     unsigned long exSize = mpz_sizeinbase(ex, 2);
     //allocates a string which will contain the exposant binary representation
-    char* str = mpz_get_str(NULL, 2, ex);
+    char *str = mpz_get_str(NULL, 2, ex);
 
     mpz_t nTemp;
 
     mpz_init_set(nTemp, n);
 
-    printf("%s\n", str);
-
-    for(unsigned long i = 0; i < exSize - 1; i++)
+    for (unsigned long i = 0; i < exSize - 1; i++)
     {
         mpz_mul(nTemp, nTemp, nTemp);
-        //mpz_mod(nTemp, nTemp, modulo);
-        if(str[i] == '1')
+        mpz_mod(nTemp, nTemp, modulo);
+        if (str[i] == '1')
         {
             mpz_mul(nTemp, nTemp, n);
-            //mpz_mod(nTemp, nTemp, modulo);
+            mpz_mod(nTemp, nTemp, modulo);
         }
     }
 
-    gmp_printf("%Zd", nTemp);
+    gmp_printf("SQ %Zd", nTemp);
+
+    mpz_set(n, nTemp);
 
     mpz_clear(nTemp);
 
-    free(str);   
+    free(str);
 }
 
-int main()
+//returns 0 if composed 1 otherwise
+int soloStra(mpz_t n, unsigned int k)
+{
+    mpz_t a, r;
+    mpz_init(a);
+    mpz_init(r);
+
+    gmp_randstate_t state;
+    gmp_randinit_mt(state);
+
+    size_t bitsN = mpz_sizeinbase(n, 2);
+    mpz_t aPow;
+    mpz_init(aPow);
+    for (unsigned int i = 0; i < k; i++)
+    {
+        mpz_urandomb(a, state, bitsN - 2);
+        mpz_add_ui(a, a, 2); //because we want {2 .. n-1}
+
+        getJacobi(r, a, n);
+
+        if (mpz_get_ui(r) == 0)
+        {
+            return 0;
+        }
+        else
+        {
+            mpz_sub_ui(aPow, n, 1);
+            mpz_div_ui(aPow, aPow, 2);
+
+            squareAndMultiply(a, n, aPow);
+            mpz_mod(a, a, n);
+            if (!mpz_cmp(a, r))
+            {
+                return 0;
+            }
+        }
+    }
+    return 1;
+}
+
+int main(int argc, char const *argv[])
 {
     mpz_t test;
-
     mpz_init(test);
+    unsigned int k;
+    int stop = 0;
 
-    printf("Enter N: ");
+    while (!stop)
+    {
+        printf("Insert n: ");
+        gmp_scanf("%Zd", test);
+        printf("\n");
 
-    mpz_t a, b, twoP;
+        printf("Insert k: ");
+        scanf("%u", &k);
+        printf("\n");
 
-    mpz_init_set_ui(a, 541);
-    mpz_init_set_ui(b, 7);
-    
+        if(soloStra(test, k))
+        {
+            printf("The number is not composed");
+        }
+        else
+        {
+            printf("The number is composed");
+        }
 
+        printf("Stop ? (1 -> YES  0 -> NO)");
+        scanf("%d", &stop);
+    }
 
     mpz_clear(test);
-    mpz_clear(a);
-    mpz_clear(b);
+
     return 0;
 }
