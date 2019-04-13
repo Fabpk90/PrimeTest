@@ -11,7 +11,7 @@ void getTwoFactors(mpz_t a, mpz_t result)
 
     mpz_set(tmp, a);
 
-    printf("%lu\n", mpz_get_ui(tmp));
+   // printf("%lu\n", mpz_get_ui(tmp));
 
     while (!(mpz_get_ui(tmp) & 1))
     {
@@ -34,22 +34,27 @@ void powOfTwo(mpz_t a, mpz_t times)
 
 unsigned int gcd(mpz_t a, mpz_t b)
 {
-    mpz_t tmp;
+    mpz_t tmpA, tmpB, tmp;
     mpz_init(tmp);
+    mpz_init(tmpA);
+    mpz_init(tmpB);
 
-    printf("%lu\n", mpz_get_ui(a));
-    printf("%lu\n", mpz_get_ui(b));
+    mpz_set(tmpA, a);
+    mpz_set(tmpB, b);
 
-    while (mpz_get_ui(b) != 0 && mpz_get_ui(b) != 1)
+    while (mpz_get_ui(tmpB) != 0 && mpz_get_ui(tmpB) != 1)
     {
-        mpz_set(tmp, b);
-        mpz_mod(b, a, b);
-        mpz_set(a, tmp);
+        mpz_set(tmp, tmpB);
+        mpz_mod(tmpB, tmpA, tmpB);
+        mpz_set(tmpA, tmp);
     }
 
+    mpz_clear(tmpA);
+    unsigned int res = mpz_get_ui(tmpB);
+    mpz_clear(tmpB);
     mpz_clear(tmp);
 
-    return mpz_get_ui(b);
+    return res;
 }
 
 //sets res to jacobi(a/b)
@@ -71,6 +76,10 @@ void getJacobi(mpz_t res, mpz_t a, mpz_t n)
     {
         mpz_set_ui(pow, 0);
         mpz_set_ui(two, 2);
+
+        gmp_printf("0.1  %Zd\n", a);
+        gmp_printf("0.1  %Zd\n", n);
+
         //(1) -> 1
         mpz_mod(a, a, n);
 
@@ -158,7 +167,7 @@ void getJacobi(mpz_t res, mpz_t a, mpz_t n)
     mpz_clear(two);
 }
 
-// sets n to n^ex    TODO: mod
+// sets n to n^ex mod modulo
 void squareAndMultiply(mpz_t n, mpz_t modulo, mpz_t ex)
 {
     //gets the size in bit of the exposant
@@ -173,15 +182,15 @@ void squareAndMultiply(mpz_t n, mpz_t modulo, mpz_t ex)
     for (unsigned long i = 0; i < exSize - 1; i++)
     {
         mpz_mul(nTemp, nTemp, nTemp);
-        mpz_mod(nTemp, nTemp, modulo);
+        //mpz_mod(nTemp, nTemp, modulo);
         if (str[i] == '1')
         {
             mpz_mul(nTemp, nTemp, n);
-            mpz_mod(nTemp, nTemp, modulo);
+            //mpz_mod(nTemp, nTemp, modulo);
         }
     }
 
-    gmp_printf("SQ %Zd", nTemp);
+    gmp_printf("SQ %Zd\n", nTemp);
 
     mpz_set(n, nTemp);
 
@@ -249,14 +258,14 @@ int main(int argc, char const *argv[])
 
         if(soloStra(test, k))
         {
-            printf("The number is not composed");
+            printf("The number is not composed\n");
         }
         else
         {
-            printf("The number is composed");
+            printf("The number is composed\n");
         }
 
-        printf("Stop ? (1 -> YES  0 -> NO)");
+        printf("Stop ? (1 -> YES  0 -> NO)\n");
         scanf("%d", &stop);
     }
 
