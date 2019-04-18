@@ -256,13 +256,13 @@ int main(int argc, char const *argv[])
         scanf("%u", &k);
         printf("\n");
 
-        if(soloStra(test, k))
+        if(soloStra(test, k) == 0)
         {
-            printf("The number is not composed\n");
+            printf("The number is composed\n");
         }
         else
         {
-            printf("The number is composed\n");
+            printf("The number is not composed\n");
         }
 
         printf("Stop ? (1 -> YES  0 -> NO)\n");
