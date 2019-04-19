@@ -67,22 +67,22 @@ void getJacobi(mpz_t res, mpz_t a, mpz_t n)
 
     int ok = 1; // to be set when the algo ends
 
-    //gmp_printf("0  %Zd\n", a);
-    //gmp_printf("0  %Zd\n", n);
+    gmp_printf("0  %Zd\n", a);
+    gmp_printf("0  %Zd\n", n);
 
     while (ok)
     {
         mpz_set_ui(pow, 0);
         mpz_set_ui(two, 2);
 
-        //gmp_printf("0.1  %Zd\n", a);
-        //gmp_printf("0.1  %Zd\n", n);
+        gmp_printf("0.1  %Zd\n", a);
+        gmp_printf("0.1  %Zd\n", n);
 
         //(1) -> 1
         mpz_mod(a, a, n);
 
-        //gmp_printf("1  %Zd\n", a);
-        //gmp_printf("1  %Zd\n", n);
+        gmp_printf("1  %Zd\n", a);
+        gmp_printf("1  %Zd\n", n);
 
         //(2) -> 3 5
         //degrouping pow of two
@@ -91,8 +91,8 @@ void getJacobi(mpz_t res, mpz_t a, mpz_t n)
         //if -1 see pow to know if even
         getTwoFactors(a, pow);
 
-        //gmp_printf("2  %Zd\n", a);
-        //gmp_printf("2  %Zd\n", n);
+        gmp_printf("2  %Zd\n", a);
+        gmp_printf("2  %Zd\n", n);
 
         if (mpz_get_ui(pow) != 0)
         {
@@ -104,20 +104,21 @@ void getJacobi(mpz_t res, mpz_t a, mpz_t n)
 
             mpz_div(a, a, two);
 
-            //gmp_printf("3  %Zd\n", a);
-            //gmp_printf("3  %Zd\n", n);
+            gmp_printf("3  %Zd\n", a);
+            gmp_printf("3  %Zd\n", n);
 
             mpz_mod_ui(modRes, n, 8);
 
             if (mpz_get_ui(modRes) == 3 || mpz_get_ui(modRes) == 5)
             {
+                gmp_printf("modulo  %Zd\n", modRes);
                 //odd (-1)^pow where pow is odd
                 if (!(mpz_get_ui(pow) & 1))
                     sign = (sign == 1) ? 0 : 1;
             }
 
-            //gmp_printf("4  %Zd\n", a);
-            //gmp_printf("4  %Zd\n", n);
+            gmp_printf("4  %Zd\n", a);
+            gmp_printf("4  %Zd\n", n);
 
             mpz_clear(modRes);
         }
@@ -144,9 +145,10 @@ void getJacobi(mpz_t res, mpz_t a, mpz_t n)
                 mpz_mod_ui(modA, a, 4);
                 mpz_mod_ui(modN, n, 4);
 
-                if (mpz_get_ui(modA) == 1 || mpz_get_ui(modN) == 1)
+                if (mpz_get_ui(modA) != 1 && mpz_get_ui(modN) != 1)
                 {
                     // -*- == +
+                    printf("Changing sign by mult \n");
                     sign = (sign == 1) ? 0 : 1;
                 }
 
@@ -158,9 +160,12 @@ void getJacobi(mpz_t res, mpz_t a, mpz_t n)
         }
     }
 
-    if (sign)
+    if (sign == 1)
+    {
+        printf("Hello fucker \n");
         mpz_neg(res, res);
-
+    }
+        
     mpz_clear(pow);
     mpz_clear(two);
 }
@@ -173,22 +178,29 @@ void squareAndMultiply(mpz_t n, mpz_t modulo, mpz_t ex)
     //allocates a string which will contain the exposant binary representation
     char *str = mpz_get_str(NULL, 2, ex);
 
+   // gmp_printf("ex SQ is %Zd\n", ex);
+   //printf("Str: %s\n", str);
+
     mpz_t nTemp;
 
     mpz_init_set(nTemp, n);
 
-    for (unsigned long i = 0; i < exSize - 1; i++)
+    for (unsigned long i = 1; i < exSize; i++)
     {
+      //  printf("Analysing %c\n", str[i]);
+      //  gmp_printf("Entering loop %Zd\n", nTemp);
         mpz_mul(nTemp, nTemp, nTemp);
         mpz_mod(nTemp, nTemp, modulo);
+      //  gmp_printf("After mod %Zd\n", nTemp);
         if (str[i] == '1')
         {
             mpz_mul(nTemp, nTemp, n);
             mpz_mod(nTemp, nTemp, modulo);
+           // gmp_printf("After mul %Zd\n", nTemp);
         }
     }
 
-    gmp_printf("SQ %Zd\n", nTemp);
+    //gmp_printf("SQ %Zd\n", nTemp);
 
     mpz_set(n, nTemp);
 
@@ -215,11 +227,17 @@ int soloStra(mpz_t n, unsigned int k)
 
     mpz_init(tmpN);
 
+    //used for a^Pow mod n
+    mpz_sub_ui(aPow, n, 1);
+    mpz_div_ui(aPow, aPow, 2);
+
     for (unsigned int i = 0; i < k; i++)
     {
         printf("YESSS %d", i);
         mpz_urandomm(a, state, n);
-        mpz_add_ui(a, a, 2); //because we want {2 .. n-1}
+        
+        if(mpz_get_ui(a) == 0 || mpz_get_ui(a) == 1)
+            mpz_add_ui(a, a, 2); //because we want {2 .. n-1}
 
         //resetting back the temporary vals
         mpz_set(tmpA, a);
@@ -246,22 +264,23 @@ int soloStra(mpz_t n, unsigned int k)
         }
         else
         {
-            /*if(mpz_get_ui(r) == -1)
+            if(mpz_get_d(r) == -1)
             {
-                mpz_set(r, )
-            }*/
+                mpz_sub_ui(r, n, 1);
+            }
 
             printf("WUT\n");
-
-            mpz_sub_ui(aPow, n, 1);
-            mpz_div_ui(aPow, aPow, 2);
 
             gmp_printf("pow is %Zd\n", aPow);
             gmp_printf("A is %Zd\n", a);
             
 
             squareAndMultiply(a, n, aPow);
-            if (!mpz_cmp(a, r))
+
+            gmp_printf("A is %Zd after\n", a);
+            gmp_printf("R is %Zd after\n", r);
+
+            if (mpz_cmp(a, r) != 0)
             {
                 //clean up
                 mpz_clear(aPow);
