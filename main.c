@@ -177,7 +177,7 @@ void squareAndMultiply(mpz_t n, mpz_t modulo, mpz_t ex)
 }
 
 //returns 0 if composed 1 otherwise
-int soloStra(mpz_t n, unsigned int k)
+int soloStra(mpz_t n, unsigned int k, char verbose)
 {
     mpz_t a, r;
     mpz_init(a);
@@ -200,6 +200,9 @@ int soloStra(mpz_t n, unsigned int k)
 
     for (unsigned int i = 0; i < k; i++)
     {
+        if(verbose)
+            printf("iteration %u in progress\n", i+1);
+
         mpz_urandomm(a, state, n);
         
         if(mpz_get_ui(a) == 0 || mpz_get_ui(a) == 1)
@@ -260,9 +263,13 @@ int main(int argc, char const *argv[])
     mpz_t test;
     mpz_init(test);
     unsigned int k;
-    int stop = 0;
+    int stop = 0, verbose = 0;
 
-    //TODO: add exit if n == 2
+    //TODO: add reading from a file, a good makefile, overhaul cleaning of fonctions
+
+    printf("Verbose execution ? (1 = YES, 0 = NO)\n");
+    scanf("%d", &verbose);
+    printf("\n");
 
     while (!stop)
     {
@@ -274,7 +281,7 @@ int main(int argc, char const *argv[])
         scanf("%u", &k);
         printf("\n");
 
-        if(mpz_get_ui(test) == 2 || mpz_get_ui(test) == 1 || soloStra(test, k) != 0)
+        if(mpz_get_ui(test) == 2 || mpz_get_ui(test) == 1 || soloStra(test, k, verbose) != 0)
         {
             printf("The number is probably prime\n");
         }

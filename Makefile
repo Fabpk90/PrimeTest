@@ -1,5 +1,6 @@
 run: compile
-	./yes.ha
+	./PrimeTest.goodstuff
 
 compile:
-	gcc  -g3 main.c -o yes.ha -lgmp
+	gcc -O2 main.c -o PrimeTest.goodstuff -lgmp
+
