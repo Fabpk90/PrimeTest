@@ -1,300 +1,102 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#include <gmp.h>
+#include "primeTest.h"
 
-void getTwoFactors(mpz_t a, mpz_t result)
+void testFromFile(const char* path, unsigned long int k, int verbose)
 {
-    mpz_t tmp;
-    mpz_set_ui(result, 0);
-    mpz_init_set(tmp, a);
+    FILE* file = NULL;
+    file = fopen(path, "r");
 
-    while (!(mpz_get_ui(tmp) & 1))
+    if(file)
     {
-        mpz_add_ui(result, result, 1);
-        mpz_div_ui(tmp, tmp, 2);
-    }
+        char buffer[1024];
+        unsigned long int inputUI = 0, i = 0;
 
-    mpz_clear(tmp);
-}
+        mpz_t input;
+        mpz_init(input);
 
-void powOfTwo(mpz_t a, mpz_t times)
-{
-    unsigned long int j = mpz_get_ui(times) - 1;
-    for (unsigned long int i = 0; i < j; i++)
-    {
-        mpz_mul_ui(a, a, 2);
-    }
-}
-
-unsigned int gcd(mpz_t a, mpz_t b)
-{
-    mpz_t tmpA, tmpB, tmp;
-    mpz_init(tmp);
-    mpz_init(tmpA);
-    mpz_init(tmpB);
-
-    mpz_set(tmpA, a);
-    mpz_set(tmpB, b);
-
-    while (mpz_get_ui(tmpB) != 0 && mpz_get_ui(tmpB) != 1)
-    {
-        mpz_set(tmp, tmpB);
-        mpz_mod(tmpB, tmpA, tmpB);
-        mpz_set(tmpA, tmp);
-    }
-
-    mpz_clear(tmpA);
-    unsigned int res = mpz_get_ui(tmpB);
-    mpz_clear(tmpB);
-    mpz_clear(tmp);
-
-    return res;
-}
-
-//sets res to jacobi(a/b)
-void getJacobi(mpz_t res, mpz_t a, mpz_t n)
-{
-    char sign = 0;  //0 -> + 1 -> -
-    mpz_t pow, two; // not really useful cause when test the parity of the pow
-    //to neg or not the val
-    mpz_set_ui(res, 0);
-    mpz_init(pow);
-    mpz_init(two);
-
-    int ok = 1; // to be set when the algo ends
-
-    while (ok)
-    {
-        mpz_set_ui(pow, 0);
-        mpz_set_ui(two, 2);
-
-        //(1) -> 1
-        mpz_mod(a, a, n);
-
-        //(2) -> 3 5
-        //degrouping pow of two
-        //we need to divide a to 2^pow
-        //now see if 2^pow = 1 or -1 (see n mod 8)
-        //if -1 see pow to know if even
-        getTwoFactors(a, pow);
-
-        if (mpz_get_ui(pow) != 0)
+        while(fscanf(file, "%s\n", buffer) != EOF)
         {
-            //n mod 8
-            mpz_t modRes;
-            mpz_init(modRes);
+            mpz_set_str(input, buffer, 10);
+            inputUI = mpz_get_ui(input);
 
-            powOfTwo(two, pow);
-
-            mpz_div(a, a, two);
-
-            mpz_mod_ui(modRes, n, 8);
-
-            if (mpz_get_ui(modRes) == 3 || mpz_get_ui(modRes) == 5)
+            if(inputUI == 2 || inputUI == 1 || soloStra(input, k, verbose) != 0)
             {
-                //odd (-1)^pow where pow is odd
-                if ((mpz_get_ui(pow) & 1) || mpz_get_ui(pow) == 1)
-                    sign = (sign == 1) ? 0 : 1;
-                    
-            }
-
-            mpz_clear(modRes);
-        }
-
-        if (mpz_get_ui(a) == 1)
-        {
-            ok = 0;
-            mpz_set_ui(res, 1);
-        }
-        else
-        {
-            if (gcd(a, n) != 1)
-            {
-                ok = 0;
-                mpz_set_ui(res, 0);
+                printf("The number %lu is probably prime\n", ++i);
             }
             else
             {
-                mpz_t modA, modN;
-
-                mpz_init(modA);
-                mpz_init(modN);
-
-                mpz_mod_ui(modA, a, 4);
-                mpz_mod_ui(modN, n, 4);
-
-                //checks if the sign needs to be changed according to a property
-                if (mpz_get_ui(modA) != 1 && mpz_get_ui(modN) != 1)
-                {
-                    // -*- == +
-                    sign = (sign == 1) ? 0 : 1;
-                }
-
-                mpz_swap(a, n);
-
-                mpz_clear(modA);
-                mpz_clear(modN);
+                printf("The number %lu is composed\n", ++i);
             }
         }
+
+        mpz_clear(input);
+    }
+    else
+    {
+        printf("Error in loading the file %s", path);
     }
 
-    if (sign == 1)
-        mpz_neg(res, res);
-        
-    mpz_clear(pow);
-    mpz_clear(two);
+    fclose(file);
 }
 
-// sets n to n^ex mod modulo
-void squareAndMultiply(mpz_t n, mpz_t modulo, mpz_t ex)
+void testFromConsole(int verbose)
 {
-    //gets the size in bit of the exposant
-    unsigned long exSize = mpz_sizeinbase(ex, 2);
-    //allocates a string which will contain the exposant binary representation
-    char *str = mpz_get_str(NULL, 2, ex);
+    unsigned long int inputUI, k;
+    mpz_t input;
 
-    mpz_t nTemp;
+    printf("Insert n: ");
+    gmp_scanf("%Zd", input);
+    printf("\n");
 
-    mpz_init_set(nTemp, n);
+    printf("Insert k: ");
+    scanf("%lu", &k);
+    printf("\n");
 
-    for (unsigned long i = 1; i < exSize; i++)
+    inputUI = mpz_get_ui(input);
+
+    if(inputUI == 2 || inputUI == 1 || soloStra(input, k, verbose) != 0)
     {
-        mpz_mul(nTemp, nTemp, nTemp);
-        mpz_mod(nTemp, nTemp, modulo);
-        if (str[i] == '1')
-        {
-            mpz_mul(nTemp, nTemp, n);
-            mpz_mod(nTemp, nTemp, modulo);
-        }
+        printf("The number is probably prime\n");
+    }
+    else
+    {
+        printf("The number is composed\n");
     }
 
-    mpz_set(n, nTemp);
-
-    mpz_clear(nTemp);
-
-    free(str);
-}
-
-//returns 0 if composed 1 otherwise
-int soloStra(mpz_t n, unsigned int k, char verbose)
-{
-    mpz_t a, r;
-    mpz_init(a);
-    mpz_init(r);
-
-    //used to generate a randomly
-    gmp_randstate_t state;
-    gmp_randinit_mt(state);
-
-    mpz_t aPow, tmpN, tmpA;
-    
-    mpz_init(tmpA);
-    mpz_init(aPow);//init the exponent of a
-
-    mpz_init(tmpN);
-
-    //used for a^Pow mod n
-    mpz_sub_ui(aPow, n, 1);
-    mpz_div_ui(aPow, aPow, 2);
-
-    for (unsigned int i = 0; i < k; i++)
-    {
-        if(verbose)
-            printf("iteration %u in progress\n", i+1);
-
-        mpz_urandomm(a, state, n);
-        
-        if(mpz_get_ui(a) == 0 || mpz_get_ui(a) == 1)
-            mpz_add_ui(a, a, 2); //because we want {2 .. n-1}
-
-        mpz_set(tmpA, a);
-        mpz_set(tmpN, n);
-
-        getJacobi(r, tmpA, tmpN);
-
-        if (mpz_get_ui(r) == 0)
-        {
-            mpz_clear(aPow);
-            mpz_clear(tmpN);
-            gmp_randclear(state);
-            mpz_clear(a);
-            mpz_clear(r);
-            mpz_clear(tmpA);
-
-            return 0;
-        }
-        else
-        {
-            if(mpz_get_d(r) == -1)
-            {
-                mpz_sub_ui(r, n, 1);
-            }
-
-            squareAndMultiply(a, n, aPow);
-
-            if (mpz_cmp(a, r) != 0)
-            {
-                //clean up
-                mpz_clear(aPow);
-                mpz_clear(tmpN);
-                gmp_randclear(state);
-                mpz_clear(a);
-                mpz_clear(r);
-                mpz_clear(tmpA);
-
-                return 0;
-            }
-        }
-    }
-
-    mpz_clear(aPow);
-    mpz_clear(tmpN);
-    gmp_randclear(state);
-    mpz_clear(a);
-    mpz_clear(r);
-    mpz_clear(tmpA);
-
-    return 1;
+    mpz_clear(input);
 }
 
 int main(int argc, char const *argv[])
 {
-    mpz_t test;
-    mpz_init(test);
-    unsigned int k;
+    unsigned long int k = 0;
     int stop = 0, verbose = 0;
 
-    //TODO: add reading from a file, a good makefile, overhaul cleaning of fonctions
+    //TODO: overhaul cleaning of fonctions
 
-    printf("Verbose execution ? (1 = YES, 0 = NO)\n");
+    printf("Verbose execution ? (1 = YES, 0 = NO)   CAUTION: it slows the execution\n");
     scanf("%d", &verbose);
     printf("\n");
 
-    while (!stop)
+    if(argc == 1)
     {
-        printf("Insert n: ");
-        gmp_scanf("%Zd", test);
-        printf("\n");
-
-        printf("Insert k: ");
-        scanf("%u", &k);
-        printf("\n");
-
-        if(mpz_get_ui(test) == 2 || mpz_get_ui(test) == 1 || soloStra(test, k, verbose) != 0)
+        while (!stop)
         {
-            printf("The number is probably prime\n");
-        }
-        else
-        {
-            printf("The number is composed\n");
-        }
+            testFromConsole(verbose);
 
-        printf("Stop ? (1 -> YES  0 -> NO)\n");
-        scanf("%d", &stop);
+            printf("Stop ? (1 -> YES  0 -> NO)\n");
+            scanf("%d", &stop);
+        }
     }
+    else
+    {
+        printf("Insert the number of tries: ");
+        scanf("%lu", &k);
+        printf("\n");
 
-    mpz_clear(test);
+        testFromFile(argv[1], k, verbose);
+    }
 
     return 0;
 }
