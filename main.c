@@ -11,7 +11,7 @@ void testFromFile(const char* path, unsigned long int k, int verbose)
 
     if(file)
     {
-        char buffer[1024];
+        char buffer[2048];
         unsigned long int inputUI = 0, i = 0;
 
         mpz_t input;
@@ -32,16 +32,16 @@ void testFromFile(const char* path, unsigned long int k, int verbose)
             }
         }
 
+        fclose(file);
         mpz_clear(input);
     }
     else
     {
-        printf("Error in loading the file %s", path);
+        printf("Error in loading the file %s \n", path);
     }
-
-    fclose(file);
 }
 
+//reads the number to test from the console
 void testFromConsole(int verbose)
 {
     unsigned long int inputUI, k;

@@ -10,6 +10,8 @@ void getTwoFactors(mpz_t a, mpz_t result)
     mpz_set_ui(result, 0);
     mpz_init_set(tmp, a);
 
+    // uses the binary representation of numbers 
+    // to quickly compute factors of 2
     while (!(mpz_get_ui(tmp) & 1))
     {
         mpz_add_ui(result, result, 1);
@@ -91,8 +93,8 @@ void getJacobi(mpz_t res, mpz_t a, mpz_t n)
             mpz_t modRes;
             mpz_init(modRes);
 
+            //factoring factors of two from a
             powOfTwo(two, pow);
-
             mpz_div(a, a, two);
 
             mpz_mod_ui(modRes, n, 8);
@@ -156,14 +158,21 @@ void getJacobi(mpz_t res, mpz_t a, mpz_t n)
 void squareAndMultiply(mpz_t n, mpz_t modulo, mpz_t ex)
 {
     //gets the size in bit of the exposant
+    //might be considered too easy: a couple of solutions exist
+    //1 consider modulo a primitive type (unsigned long int)
+    //2 hack out way with a mpz_get_ui() getting the mpz by chunks
     unsigned long exSize = mpz_sizeinbase(ex, 2);
-    //allocates a string which will contain the exposant binary representation
+
+    //allocates a string which will contain the exposant's binary representation
     char *str = mpz_get_str(NULL, 2, ex);
 
     mpz_t nTemp;
 
     mpz_init_set(nTemp, n);
 
+    //follows the S&Q algorithm, the modulo might be considered useless at first glance
+    //as it is done at each step, but it is necessary for big numbers
+    //because they take too much time to be computed
     for (unsigned long i = 1; i < exSize; i++)
     {
         mpz_mul(nTemp, nTemp, nTemp);
@@ -178,7 +187,6 @@ void squareAndMultiply(mpz_t n, mpz_t modulo, mpz_t ex)
     mpz_set(n, nTemp);
 
     mpz_clear(nTemp);
-
     free(str);
 }
 
