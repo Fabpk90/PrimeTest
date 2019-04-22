@@ -47,6 +47,8 @@ void testFromConsole(int verbose)
     unsigned long int inputUI, k;
     mpz_t input;
 
+    mpz_init(input);
+
     printf("Insert n: ");
     gmp_scanf("%Zd", input);
     printf("\n");
