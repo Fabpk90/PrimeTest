@@ -3,6 +3,7 @@
 
 #include <gmp.h>
 
+//sets result to the factors of 2 in a
 void getTwoFactors(mpz_t a, mpz_t result)
 {
     mpz_t tmp;
@@ -18,6 +19,7 @@ void getTwoFactors(mpz_t a, mpz_t result)
     mpz_clear(tmp);
 }
 
+//sets a^times, considers a == 2
 void powOfTwo(mpz_t a, mpz_t times)
 {
     unsigned long int j = mpz_get_ui(times) - 1;
@@ -27,6 +29,7 @@ void powOfTwo(mpz_t a, mpz_t times)
     }
 }
 
+//returns the gcd of a b, using the euclide algorithm
 unsigned int gcd(mpz_t a, mpz_t b)
 {
     mpz_t tmpA, tmpB, tmp;
@@ -34,9 +37,11 @@ unsigned int gcd(mpz_t a, mpz_t b)
     mpz_init(tmpA);
     mpz_init(tmpB);
 
+    //not using the values directly, because they are pointers
     mpz_set(tmpA, a);
     mpz_set(tmpB, b);
 
+    //classic application of the algo, with modulus
     while (mpz_get_ui(tmpB) != 0 && mpz_get_ui(tmpB) != 1)
     {
         mpz_set(tmp, tmpB);
@@ -44,6 +49,7 @@ unsigned int gcd(mpz_t a, mpz_t b)
         mpz_set(tmpA, tmp);
     }
 
+    //cleaning
     mpz_clear(tmpA);
     unsigned int res = mpz_get_ui(tmpB);
     mpz_clear(tmpB);
@@ -56,8 +62,8 @@ unsigned int gcd(mpz_t a, mpz_t b)
 void getJacobi(mpz_t res, mpz_t a, mpz_t n)
 {
     char sign = 0;  //0 -> + 1 -> -
-    mpz_t pow, two; // not really useful cause when test the parity of the pow
-    //to neg or not the val
+    mpz_t pow, two; 
+    
     mpz_set_ui(res, 0);
     mpz_init(pow);
     mpz_init(two);

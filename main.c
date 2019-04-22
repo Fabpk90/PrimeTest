@@ -3,6 +3,7 @@
 
 #include "primeTest.h"
 
+//reads all the numbers in the file at path, testing them k times
 void testFromFile(const char* path, unsigned long int k, int verbose)
 {
     FILE* file = NULL;
@@ -73,12 +74,11 @@ int main(int argc, char const *argv[])
     unsigned long int k = 0;
     int stop = 0, verbose = 0;
 
-    //TODO: overhaul cleaning of fonctions
-
     printf("Verbose execution ? (1 = YES, 0 = NO)   CAUTION: it slows the execution\n");
     scanf("%d", &verbose);
     printf("\n");
 
+    //no argument == consoleMode
     if(argc == 1)
     {
         while (!stop)
@@ -91,6 +91,7 @@ int main(int argc, char const *argv[])
     }
     else
     {
+        //here we assume that if a arg is provided, it's a file path
         printf("Insert the number of tries: ");
         scanf("%lu", &k);
         printf("\n");
